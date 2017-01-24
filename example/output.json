@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "arrayNoPointers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nestedItemValue": {
+            "type": "string",
+            "description": "Some nested value"
+          }
+        }
+      }
+    },
+    "arrayPointers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nestedItemValue": {
+            "type": "string",
+            "description": "Some nested value"
+          }
+        }
+      }
+    },
+    "data": {
+      "type": "string"
+    },
+    "dataOmitEmpty": {
+      "type": "string"
+    },
+    "nestedItem": {
+      "type": "object",
+      "properties": {
+        "nestedItemValue": {
+          "type": "string",
+          "description": "Some nested value"
+        }
+      }
+    },
+    "nestedItemPointer": {
+      "type": "object",
+      "properties": {
+        "nestedItemValue": {
+          "type": "string",
+          "description": "Some nested value"
+        }
+      }
+    },
+    "nullableData": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requiredPointerData": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "requiredPointerData"
+  ]
+}

@@ -3,10 +3,10 @@
 package generator
 
 import (
-	"fmt"
 	"strings"
 	"reflect"
 	"encoding/json"
+	"fmt"
 )
 
 //func main() {
@@ -22,12 +22,17 @@ type Document struct {
 	property
 }
 
+func Generate(v interface{}) string {
+	return new(Document).Read(v).String()
+}
+
 // Reads the variable structure into the JSON-Schema Document
-func (d *Document) Read(variable interface{}) {
+func (d *Document) Read(variable interface{}) *Document{
 	d.setDefaultSchema()
 
 	value := reflect.ValueOf(variable)
 	d.read(value.Type())
+	return d
 }
 
 func (d *Document) setDefaultSchema() {
@@ -36,14 +41,10 @@ func (d *Document) setDefaultSchema() {
 	}
 }
 
-// Marshal returns the JSON encoding of the Document
-func (d *Document) Marshal() ([]byte, error) {
-	return json.MarshalIndent(d, "", "    ")
-}
 
 // String return the JSON encoding of the Document as a string
 func (d *Document) String() string {
-	json, _ := d.Marshal()
+	json, _ := json.MarshalIndent(d, "", "    ")
 	return string(json)
 }
 
@@ -118,7 +119,7 @@ func (p *property) readFromStruct(t reflect.Type) {
 		field := t.Field(i)
 
 		tag := field.Tag.Get("json")
-		schemaTag := structTag(field.Tag.Get("schema"))
+		_, required := field.Tag.Lookup("required")
 		name, opts := parseTag(tag)
 		if name == "" {
 			name = field.Name
@@ -131,13 +132,10 @@ func (p *property) readFromStruct(t reflect.Type) {
 		p.Properties[name].read(field.Type)
 		p.Properties[name].Description = field.Tag.Get("description")
 
-		if opts.Contains("omitempty") || !schemaTag.Contains("required") {
+		if opts.Contains("omitempty") || !required {
 			continue
 		}
 		p.Required = append(p.Required, name)
-		//if !opts.Contains("omitempty") {
-		//	p.Required = append(p.Required, name)
-		//}
 	}
 }
 
@@ -218,3 +216,5 @@ func (o structTag) Contains(optionName string) bool {
 	}
 	return false
 }
+
+var _ fmt.Stringer = (*Document)(nil)

@@ -32,7 +32,7 @@ type ExampleJSONBasic struct {
 	Bytes      []byte  `json:",omitempty"`
 	Float32    float32 `json:",omitempty"`
 	Float64    float64
-	Interface  interface{} `schema:"required"`
+	Interface  interface{} `required:"true"`
 	Timestamp  time.Time `json:",omitempty"`
 }
 
@@ -89,7 +89,7 @@ func (self *propertySuite) TestLoadWithTag(c *C) {
 
 type ExampleJSONBasicSlices struct {
 	Slice            []string      `json:",foo,omitempty"`
-	SliceOfInterface []interface{} `json:",foo" schema:"required"`
+	SliceOfInterface []interface{} `json:",foo" required:"true"`
 }
 
 func (self *propertySuite) TestLoadSliceAndContains(c *C) {
@@ -117,7 +117,7 @@ func (self *propertySuite) TestLoadSliceAndContains(c *C) {
 
 type ExampleJSONNestedStruct struct {
 	Struct struct {
-		       Foo string `schema:"required"`
+		       Foo string `required:"true"`
 	       }
 }
 
@@ -206,8 +206,7 @@ func (self *propertySuite) TestMarshal(c *C) {
 	"    \"type\": \"integer\"\n" +
 	"}"
 
-	json, err := j.Marshal()
-	c.Assert(err, IsNil)
+	json := j.String()
 	c.Assert(string(json), Equals, expected)
 }
 
@@ -216,7 +215,7 @@ type ExampleJSONNestedSliceStruct struct {
 	Struct2 []*ItemStruct
 }
 type ItemStruct struct {
-	Foo string `schema:"required"`
+	Foo string `required:"true"`
 }
 
 func (self *propertySuite) TestLoadNestedSlice(c *C) {
