@@ -5,6 +5,7 @@ import (
 	"time"
 
 	. "gopkg.in/check.v1"
+	_"github.com/tonnerre/golang-pretty"
 )
 
 func Test(t *testing.T) {
@@ -70,6 +71,12 @@ func (self *propertySuite) TestLoad(c *C) {
 
 type ExampleJSONBasicWithTag struct {
 	Bool bool `json:"test"`
+	String string `json:"string" description:"blah" minLength:"3" maxLength:"10" pattern:"m{3,10}"`
+	Const string `json:"const" const:"blah"`
+	Float float32 `json:"float" min:"1.5" max:"42"`
+	Int int64 `json:"int" exclusiveMin:"-10" exclusiveMax:"0"`
+	AnswerToLife int `json:"answer" const:"42"`
+	Fruit string `json:"fruit" enum:"apple|banana|pear"`
 }
 
 func (self *propertySuite) TestLoadWithTag(c *C) {
@@ -82,6 +89,35 @@ func (self *propertySuite) TestLoadWithTag(c *C) {
 			Type:     "object",
 			Properties: map[string]*property{
 				"test": &property{Type: "boolean"},
+				"string": &property{
+					Type: "string",
+					MinLength: int64ptr(3),
+					MaxLength: int64ptr(10),
+					Pattern: "m{3,10}",
+					Description: "blah",
+				},
+				"const": &property{
+					Type: "string",
+					Const: "blah",
+				},
+				"float": &property{
+					Type: "number",
+					Minimum: float64ptr(1.5),
+					Maximum: float64ptr(42),
+				},
+				"int": &property{
+					Type: "integer",
+					ExclusiveMinimum: float64ptr(-10),
+					ExclusiveMaximum: float64ptr(0),
+				},
+				"answer": &property{
+					Type: "integer",
+					Const: int64(42),
+				},
+				"fruit": &property{
+					Type: "string",
+					Enum: []string{"apple", "banana", "pear"},
+				},
 			},
 		},
 	})
