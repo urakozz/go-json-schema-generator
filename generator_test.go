@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/tonnerre/golang-pretty"
 	. "gopkg.in/check.v1"
-	_"github.com/tonnerre/golang-pretty"
 )
 
 func Test(t *testing.T) {
@@ -34,7 +34,7 @@ type ExampleJSONBasic struct {
 	Float32    float32 `json:",omitempty"`
 	Float64    float64
 	Interface  interface{} `required:"true"`
-	Timestamp  time.Time `json:",omitempty"`
+	Timestamp  time.Time   `json:",omitempty"`
 }
 
 func (self *propertySuite) TestLoad(c *C) {
@@ -70,13 +70,13 @@ func (self *propertySuite) TestLoad(c *C) {
 }
 
 type ExampleJSONBasicWithTag struct {
-	Bool bool `json:"test"`
-	String string `json:"string" description:"blah" minLength:"3" maxLength:"10" pattern:"m{3,10}"`
-	Const string `json:"const" const:"blah"`
-	Float float32 `json:"float" min:"1.5" max:"42"`
-	Int int64 `json:"int" exclusiveMin:"-10" exclusiveMax:"0"`
-	AnswerToLife int `json:"answer" const:"42"`
-	Fruit string `json:"fruit" enum:"apple|banana|pear"`
+	Bool         bool    `json:"test"`
+	String       string  `json:"string" description:"blah" minLength:"3" maxLength:"10" pattern:"m{3,10}"`
+	Const        string  `json:"const" const:"blah"`
+	Float        float32 `json:"float" min:"1.5" max:"42"`
+	Int          int64   `json:"int" exclusiveMin:"-10" exclusiveMax:"0"`
+	AnswerToLife int     `json:"answer" const:"42"`
+	Fruit        string  `json:"fruit" enum:"apple|banana|pear"`
 }
 
 func (self *propertySuite) TestLoadWithTag(c *C) {
@@ -86,32 +86,32 @@ func (self *propertySuite) TestLoadWithTag(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type:     "object",
+			Type: "object",
 			Properties: map[string]*property{
 				"test": &property{Type: "boolean"},
 				"string": &property{
-					Type: "string",
-					MinLength: int64ptr(3),
-					MaxLength: int64ptr(10),
-					Pattern: "m{3,10}",
+					Type:        "string",
+					MinLength:   int64ptr(3),
+					MaxLength:   int64ptr(10),
+					Pattern:     "m{3,10}",
 					Description: "blah",
 				},
 				"const": &property{
-					Type: "string",
+					Type:  "string",
 					Const: "blah",
 				},
 				"float": &property{
-					Type: "number",
+					Type:    "number",
 					Minimum: float64ptr(1.5),
 					Maximum: float64ptr(42),
 				},
 				"int": &property{
-					Type: "integer",
+					Type:             "integer",
 					ExclusiveMinimum: float64ptr(-10),
 					ExclusiveMaximum: float64ptr(0),
 				},
 				"answer": &property{
-					Type: "integer",
+					Type:  "integer",
 					Const: int64(42),
 				},
 				"fruit": &property{
@@ -153,8 +153,8 @@ func (self *propertySuite) TestLoadSliceAndContains(c *C) {
 
 type ExampleJSONNestedStruct struct {
 	Struct struct {
-		       Foo string `required:"true"`
-	       }
+		Foo string `required:"true"`
+	}
 }
 
 func (self *propertySuite) TestLoadNested(c *C) {
@@ -226,9 +226,9 @@ func (self *propertySuite) TestString(c *C) {
 	j.Read(true)
 
 	expected := "{\n" +
-	"    \"$schema\": \"http://json-schema.org/schema#\",\n" +
-	"    \"type\": \"boolean\"\n" +
-	"}"
+		"    \"$schema\": \"http://json-schema.org/schema#\",\n" +
+		"    \"type\": \"boolean\"\n" +
+		"}"
 
 	c.Assert(j.String(), Equals, expected)
 }
@@ -238,16 +238,16 @@ func (self *propertySuite) TestMarshal(c *C) {
 	j.Read(10)
 
 	expected := "{\n" +
-	"    \"$schema\": \"http://json-schema.org/schema#\",\n" +
-	"    \"type\": \"integer\"\n" +
-	"}"
+		"    \"$schema\": \"http://json-schema.org/schema#\",\n" +
+		"    \"type\": \"integer\"\n" +
+		"}"
 
 	json := j.String()
 	c.Assert(string(json), Equals, expected)
 }
 
 type ExampleJSONNestedSliceStruct struct {
-	Struct []ItemStruct
+	Struct  []ItemStruct
 	Struct2 []*ItemStruct
 }
 type ItemStruct struct {
@@ -263,7 +263,7 @@ func (self *propertySuite) TestLoadNestedSlice(c *C) {
 		property: property{
 			Type: "object",
 			Properties: map[string]*property{
-				"Struct":&property{
+				"Struct": &property{
 					Type: "array",
 					Items: &property{
 						Type: "object",
@@ -273,7 +273,7 @@ func (self *propertySuite) TestLoadNestedSlice(c *C) {
 						Required: []string{"Foo"},
 					},
 				},
-				"Struct2":&property{
+				"Struct2": &property{
 					Type: "array",
 					Items: &property{
 						Type: "object",

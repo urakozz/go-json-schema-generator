@@ -24,4 +24,4 @@ _testmain.go
 *.prof
 
 # Ignore IntellIJ Gogland project files
-.idea   
+.idea

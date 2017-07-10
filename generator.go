@@ -3,11 +3,11 @@
 package generator
 
 import (
-	"strings"
-	"reflect"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 )
 
 //func main() {
@@ -28,7 +28,7 @@ func Generate(v interface{}) string {
 }
 
 // Reads the variable structure into the JSON-Schema Document
-func (d *Document) Read(variable interface{}) *Document{
+func (d *Document) Read(variable interface{}) *Document {
 	d.setDefaultSchema()
 
 	value := reflect.ValueOf(variable)
@@ -41,7 +41,6 @@ func (d *Document) setDefaultSchema() {
 		d.Schema = DEFAULT_SCHEMA
 	}
 }
-
 
 // String return the JSON encoding of the Document as a string
 func (d *Document) String() string {
@@ -64,22 +63,22 @@ type property struct {
 	// we want empty values to be omitted, but for numbers, 0 is seen as empty.
 
 	// numbers validators
-	MultipleOf			 *float64			  `json:"multipleOf,omitempty"`
-	Maximum				 *float64			  `json:"maximum,omitempty"`
-	Minimum				 *float64			  `json:"minimum,omitempty"`
-	ExclusiveMaximum	 *float64			  `json:"exclusiveMaximum,omitempty"`
-	ExclusiveMinimum	 *float64			  `json:"exclusiveMinimum,omitempty"`
+	MultipleOf       *float64 `json:"multipleOf,omitempty"`
+	Maximum          *float64 `json:"maximum,omitempty"`
+	Minimum          *float64 `json:"minimum,omitempty"`
+	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitempty"`
+	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitempty"`
 	// string validators
-	MaxLength			 *int64				  `json:"maxLength,omitempty"`
-	MinLength			 *int64				  `json:"minLength,omitempty"`
-	Pattern				 string				  `json:"pattern,omitempty"`
+	MaxLength *int64 `json:"maxLength,omitempty"`
+	MinLength *int64 `json:"minLength,omitempty"`
+	Pattern   string `json:"pattern,omitempty"`
 	// Enum is defined for arbitrary types, but I'm currently just implementing it for strings.
-	Enum				 []string			  `json:"enum,omitempty"`
+	Enum []string `json:"enum,omitempty"`
 
 	// Implemented for strings and numbers
-	Const				interface{}			 `json:"const,omitempty"`
-
+	Const interface{} `json:"const,omitempty"`
 }
+
 func (p *property) read(t reflect.Type) {
 	jsType, format, kind := getTypeFromMapping(t)
 	if jsType != "" {
@@ -103,8 +102,8 @@ func (p *property) read(t reflect.Type) {
 	// say we have *int
 	if kind == reflect.Ptr && isPrimitive(t.Elem().Kind()) {
 		p.AnyOf = []*property{
-			{Type:p.Type},
-			{Type:"null"},
+			{Type: p.Type},
+			{Type: "null"},
 		}
 		p.Type = ""
 	}
@@ -225,7 +224,7 @@ func (p *property) addNumberValidators(tag *reflect.StructTag) {
 	if err == nil {
 		p.Maximum = float64ptr(m)
 	}
-	m, err = strconv.ParseFloat(tag.Get("exclusiveMin"),  64)
+	m, err = strconv.ParseFloat(tag.Get("exclusiveMin"), 64)
 	if err == nil {
 		p.ExclusiveMinimum = float64ptr(m)
 	}
@@ -303,7 +302,7 @@ type structTag string
 
 func parseTag(tag string) (string, structTag) {
 	if idx := strings.Index(tag, ","); idx != -1 {
-		return tag[:idx], structTag(tag[idx + 1:])
+		return tag[:idx], structTag(tag[idx+1:])
 	}
 	return tag, structTag("")
 }
@@ -318,7 +317,7 @@ func (o structTag) Contains(optionName string) bool {
 		var next string
 		i := strings.Index(s, ",")
 		if i >= 0 {
-			s, next = s[:i], s[i + 1:]
+			s, next = s[:i], s[i+1:]
 		}
 		if s == optionName {
 			return true
