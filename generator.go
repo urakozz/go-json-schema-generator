@@ -18,6 +18,8 @@ import (
 
 const DEFAULT_SCHEMA = "http://json-schema.org/schema#"
 
+var rTypeInt64, rTypeFloat64 = reflect.TypeOf(int64(0)), reflect.TypeOf(float64(0))
+
 type Document struct {
 	Schema string `json:"$schema,omitempty"`
 	property
@@ -172,12 +174,20 @@ func (p *property) addValidatorsFromTags(tag *reflect.StructTag) {
 
 // Some helper functions for not having to create temp variables all over the place
 func int64ptr(i interface{}) *int64 {
-	j := reflect.ValueOf(i).Convert(reflect.TypeOf(int64(0))).Interface().(int64)
+	v := reflect.ValueOf(i)
+	if !v.Type().ConvertibleTo(rTypeInt64) {
+		return nil
+	}
+	j := v.Convert(rTypeInt64).Interface().(int64)
 	return &j
 }
 
 func float64ptr(i interface{}) *float64 {
-	j := reflect.ValueOf(i).Convert(reflect.TypeOf(float64(0))).Interface().(float64)
+	v := reflect.ValueOf(i)
+	if !v.Type().ConvertibleTo(rTypeFloat64) {
+		return nil
+	}
+	j := v.Convert(rTypeFloat64).Interface().(float64)
 	return &j
 }
 
