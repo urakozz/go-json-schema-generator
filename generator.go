@@ -3,10 +3,11 @@
 package generator
 
 import (
-	"strings"
-	"reflect"
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
 )
 
 //func main() {
@@ -16,6 +17,8 @@ import (
 //}
 
 const DEFAULT_SCHEMA = "http://json-schema.org/schema#"
+
+var rTypeInt64, rTypeFloat64 = reflect.TypeOf(int64(0)), reflect.TypeOf(float64(0))
 
 type Document struct {
 	Schema string `json:"$schema,omitempty"`
@@ -27,7 +30,7 @@ func Generate(v interface{}) string {
 }
 
 // Reads the variable structure into the JSON-Schema Document
-func (d *Document) Read(variable interface{}) *Document{
+func (d *Document) Read(variable interface{}) *Document {
 	d.setDefaultSchema()
 
 	value := reflect.ValueOf(variable)
@@ -40,7 +43,6 @@ func (d *Document) setDefaultSchema() {
 		d.Schema = DEFAULT_SCHEMA
 	}
 }
-
 
 // String return the JSON encoding of the Document as a string
 func (d *Document) String() string {
@@ -57,7 +59,28 @@ type property struct {
 	AdditionalProperties bool                 `json:"additionalProperties,omitempty"`
 	Description          string               `json:"description,omitempty"`
 	AnyOf                []*property          `json:"anyOf,omitempty"`
+
+	// validation keywords:
+	// For any number-valued fields, we're making them pointers, because
+	// we want empty values to be omitted, but for numbers, 0 is seen as empty.
+
+	// numbers validators
+	MultipleOf       *float64 `json:"multipleOf,omitempty"`
+	Maximum          *float64 `json:"maximum,omitempty"`
+	Minimum          *float64 `json:"minimum,omitempty"`
+	ExclusiveMaximum *float64 `json:"exclusiveMaximum,omitempty"`
+	ExclusiveMinimum *float64 `json:"exclusiveMinimum,omitempty"`
+	// string validators
+	MaxLength *int64 `json:"maxLength,omitempty"`
+	MinLength *int64 `json:"minLength,omitempty"`
+	Pattern   string `json:"pattern,omitempty"`
+	// Enum is defined for arbitrary types, but I'm currently just implementing it for strings.
+	Enum []string `json:"enum,omitempty"`
+
+	// Implemented for strings and numbers
+	Const interface{} `json:"const,omitempty"`
 }
+
 func (p *property) read(t reflect.Type) {
 	jsType, format, kind := getTypeFromMapping(t)
 	if jsType != "" {
@@ -81,8 +104,8 @@ func (p *property) read(t reflect.Type) {
 	// say we have *int
 	if kind == reflect.Ptr && isPrimitive(t.Elem().Kind()) {
 		p.AnyOf = []*property{
-			{Type:p.Type},
-			{Type:"null"},
+			{Type: p.Type},
+			{Type: "null"},
 		}
 		p.Type = ""
 	}
@@ -131,12 +154,109 @@ func (p *property) readFromStruct(t reflect.Type) {
 		p.Properties[name] = &property{}
 		p.Properties[name].read(field.Type)
 		p.Properties[name].Description = field.Tag.Get("description")
+		p.Properties[name].addValidatorsFromTags(&field.Tag)
 
 		if opts.Contains("omitempty") || !required {
 			continue
 		}
 		p.Required = append(p.Required, name)
 	}
+}
+
+func (p *property) addValidatorsFromTags(tag *reflect.StructTag) {
+	switch p.Type {
+	case "string":
+		p.addStringValidators(tag)
+	case "number", "integer":
+		p.addNumberValidators(tag)
+	}
+}
+
+// Some helper functions for not having to create temp variables all over the place
+func int64ptr(i interface{}) *int64 {
+	v := reflect.ValueOf(i)
+	if !v.Type().ConvertibleTo(rTypeInt64) {
+		return nil
+	}
+	j := v.Convert(rTypeInt64).Interface().(int64)
+	return &j
+}
+
+func float64ptr(i interface{}) *float64 {
+	v := reflect.ValueOf(i)
+	if !v.Type().ConvertibleTo(rTypeFloat64) {
+		return nil
+	}
+	j := v.Convert(rTypeFloat64).Interface().(float64)
+	return &j
+}
+
+func (p *property) addStringValidators(tag *reflect.StructTag) {
+	// min length
+	mls := tag.Get("minLength")
+	ml, err := strconv.ParseInt(mls, 10, 64)
+	if err == nil {
+		p.MinLength = int64ptr(ml)
+	}
+	// max length
+	mls = tag.Get("maxLength")
+	ml, err = strconv.ParseInt(mls, 10, 64)
+	if err == nil {
+		p.MaxLength = int64ptr(ml)
+	}
+	// pattern
+	pat := tag.Get("pattern")
+	if pat != "" {
+		p.Pattern = pat
+	}
+	// enum
+	en := tag.Get("enum")
+	if en != "" {
+		p.Enum = strings.Split(en, "|")
+	}
+	//const
+	c := tag.Get("const")
+	if c != "" {
+		p.Const = c
+	}
+}
+
+func (p *property) addNumberValidators(tag *reflect.StructTag) {
+	m, err := strconv.ParseFloat(tag.Get("multipleOf"), 64)
+	if err == nil {
+		p.MultipleOf = float64ptr(m)
+	}
+	m, err = strconv.ParseFloat(tag.Get("min"), 64)
+	if err == nil {
+		p.Minimum = float64ptr(m)
+	}
+	m, err = strconv.ParseFloat(tag.Get("max"), 64)
+	if err == nil {
+		p.Maximum = float64ptr(m)
+	}
+	m, err = strconv.ParseFloat(tag.Get("exclusiveMin"), 64)
+	if err == nil {
+		p.ExclusiveMinimum = float64ptr(m)
+	}
+	m, err = strconv.ParseFloat(tag.Get("exclusiveMax"), 64)
+	if err == nil {
+		p.ExclusiveMaximum = float64ptr(m)
+	}
+	c, err := parseType(tag.Get("const"), p.Type)
+	if err == nil {
+		p.Const = c
+	}
+}
+
+func parseType(str, ty string) (interface{}, error) {
+	var v interface{}
+	var err error
+	if ty == "number" {
+		v, err = strconv.ParseFloat(str, 64)
+	} else {
+		v, err = strconv.ParseInt(str, 10, 64)
+	}
+	return v, err
 }
 
 var formatMapping = map[string][]string{
@@ -192,7 +312,7 @@ type structTag string
 
 func parseTag(tag string) (string, structTag) {
 	if idx := strings.Index(tag, ","); idx != -1 {
-		return tag[:idx], structTag(tag[idx + 1:])
+		return tag[:idx], structTag(tag[idx+1:])
 	}
 	return tag, structTag("")
 }
@@ -207,7 +327,7 @@ func (o structTag) Contains(optionName string) bool {
 		var next string
 		i := strings.Index(s, ",")
 		if i >= 0 {
-			s, next = s[:i], s[i + 1:]
+			s, next = s[:i], s[i+1:]
 		}
 		if s == optionName {
 			return true
