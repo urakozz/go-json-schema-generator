@@ -1,4 +1,7 @@
 # go-json-schema-generator
+[![codecov](https://codecov.io/gh/urakozz/go-json-schema-generator/branch/master/graph/badge.svg)](https://codecov.io/gh/urakozz/go-json-schema-generator)
+[![travisci](https://travis-ci.org/urakozz/go-json-schema-generator.svg?branch=master)](https://travis-ci.org/urakozz/go-json-schema-generator)
+
 Generate JSON Schema out of Golang schema
 
 ### Usage
