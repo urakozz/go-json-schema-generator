@@ -44,26 +44,26 @@ func (self *propertySuite) TestLoad(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type:     "object",
+			Type:     []string{"object"},
 			Required: []string{"Interface"},
 			Properties: map[string]*property{
-				"Bool":       &property{Type: "boolean"},
-				"Integer":    &property{Type: "integer"},
-				"Integer8":   &property{Type: "integer"},
-				"Integer16":  &property{Type: "integer"},
-				"Integer32":  &property{Type: "integer"},
-				"Integer64":  &property{Type: "integer"},
-				"UInteger":   &property{Type: "integer"},
-				"UInteger8":  &property{Type: "integer"},
-				"UInteger16": &property{Type: "integer"},
-				"UInteger32": &property{Type: "integer"},
-				"UInteger64": &property{Type: "integer"},
-				"String":     &property{Type: "string"},
-				"Bytes":      &property{Type: "string"},
-				"Float32":    &property{Type: "number"},
-				"Float64":    &property{Type: "number"},
+				"Bool":       &property{Type: []string{"boolean"}},
+				"Integer":    &property{Type: []string{"integer"}},
+				"Integer8":   &property{Type: []string{"integer"}},
+				"Integer16":  &property{Type: []string{"integer"}},
+				"Integer32":  &property{Type: []string{"integer"}},
+				"Integer64":  &property{Type: []string{"integer"}},
+				"UInteger":   &property{Type: []string{"integer"}},
+				"UInteger8":  &property{Type: []string{"integer"}},
+				"UInteger16": &property{Type: []string{"integer"}},
+				"UInteger32": &property{Type: []string{"integer"}},
+				"UInteger64": &property{Type: []string{"integer"}},
+				"String":     &property{Type: []string{"string"}},
+				"Bytes":      &property{Type: []string{"string"}},
+				"Float32":    &property{Type: []string{"number"}},
+				"Float64":    &property{Type: []string{"number"}},
 				"Interface":  &property{},
-				"Timestamp":  &property{Type: "string", Format: "date-time"},
+				"Timestamp":  &property{Type: []string{"string"}, Format: "date-time"},
 			},
 		},
 	})
@@ -86,36 +86,36 @@ func (self *propertySuite) TestLoadWithTag(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type: "object",
+			Type: []string{"object"},
 			Properties: map[string]*property{
-				"test": &property{Type: "boolean"},
+				"test": &property{Type: []string{"boolean"}},
 				"string": &property{
-					Type:        "string",
+					Type:        []string{"string"},
 					MinLength:   int64ptr(3),
 					MaxLength:   int64ptr(10),
 					Pattern:     "m{3,10}",
 					Description: "blah",
 				},
 				"const": &property{
-					Type:  "string",
+					Type:  []string{"string"},
 					Const: "blah",
 				},
 				"float": &property{
-					Type:    "number",
+					Type:    []string{"number"},
 					Minimum: float64ptr(1.5),
 					Maximum: float64ptr(42),
 				},
 				"int": &property{
-					Type:             "integer",
+					Type:             []string{"integer"},
 					ExclusiveMinimum: float64ptr(-10),
 					ExclusiveMaximum: float64ptr(0),
 				},
 				"answer": &property{
-					Type:  "integer",
+					Type:  []string{"integer"},
 					Const: int64(42),
 				},
 				"fruit": &property{
-					Type: "string",
+					Type: []string{"string"},
 					Enum: []string{"apple", "banana", "pear"},
 				},
 			},
@@ -135,14 +135,14 @@ func (self *propertySuite) TestLoadSliceAndContains(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type: "object",
+			Type: []string{"object"},
 			Properties: map[string]*property{
 				"Slice": &property{
-					Type:  "array",
-					Items: &property{Type: "string"},
+					Type:  []string{"array"},
+					Items: &property{Type: []string{"string"}},
 				},
 				"SliceOfInterface": &property{
-					Type: "array",
+					Type: []string{"array"},
 				},
 			},
 
@@ -164,12 +164,12 @@ func (self *propertySuite) TestLoadNested(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type: "object",
+			Type: []string{"object"},
 			Properties: map[string]*property{
 				"Struct": &property{
-					Type: "object",
+					Type: []string{"object"},
 					Properties: map[string]*property{
-						"Foo": &property{Type: "string"},
+						"Foo": &property{Type: []string{"string"}},
 					},
 					Required: []string{"Foo"},
 				},
@@ -190,17 +190,17 @@ func (self *propertySuite) TestLoadMap(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type: "object",
+			Type: []string{"object"},
 			Properties: map[string]*property{
 				"Maps": &property{
-					Type: "object",
+					Type: []string{"object"},
 					Properties: map[string]*property{
-						".*": &property{Type: "string"},
+						".*": &property{Type: []string{"string"}},
 					},
 					AdditionalProperties: false,
 				},
 				"MapOfInterface": &property{
-					Type:                 "object",
+					Type:                 []string{"object"},
 					AdditionalProperties: true,
 				},
 			},
@@ -215,8 +215,8 @@ func (self *propertySuite) TestLoadNonStruct(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type:  "array",
-			Items: &property{Type: "string"},
+			Type:  []string{"array"},
+			Items: &property{Type: []string{"string"}},
 		},
 	})
 }
@@ -261,24 +261,24 @@ func (self *propertySuite) TestLoadNestedSlice(c *C) {
 	c.Assert(*j, DeepEquals, Document{
 		Schema: "http://json-schema.org/schema#",
 		property: property{
-			Type: "object",
+			Type: []string{"object"},
 			Properties: map[string]*property{
 				"Struct": &property{
-					Type: "array",
+					Type: []string{"array"},
 					Items: &property{
-						Type: "object",
+						Type: []string{"object"},
 						Properties: map[string]*property{
-							"Foo": &property{Type: "string"},
+							"Foo": &property{Type: []string{"string"}},
 						},
 						Required: []string{"Foo"},
 					},
 				},
 				"Struct2": &property{
-					Type: "array",
+					Type: []string{"array"},
 					Items: &property{
-						Type: "object",
+						Type: []string{"object"},
 						Properties: map[string]*property{
-							"Foo": &property{Type: "string"},
+							"Foo": &property{Type: []string{"string"}},
 						},
 						Required: []string{"Foo"},
 					},

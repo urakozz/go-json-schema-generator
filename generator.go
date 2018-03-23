@@ -51,7 +51,7 @@ func (d *Document) String() string {
 }
 
 type property struct {
-	Type                 string               `json:"type,omitempty"`
+	Type                 []string             `json:"type,omitempty"`
 	Format               string               `json:"format,omitempty"`
 	Items                *property            `json:"items,omitempty"`
 	Properties           map[string]*property `json:"properties,omitempty"`
@@ -84,11 +84,12 @@ type property struct {
 func (p *property) read(t reflect.Type) {
 	jsType, format, kind := getTypeFromMapping(t)
 	if jsType != "" {
-		p.Type = jsType
+		p.Type = append(p.Type, jsType)
 	}
 	if format != "" {
 		p.Format = format
 	}
+	p.Type = append(p.Type, "null")
 
 	switch kind {
 	case reflect.Slice:
@@ -105,16 +106,16 @@ func (p *property) read(t reflect.Type) {
 	if kind == reflect.Ptr && isPrimitive(t.Elem().Kind()) {
 		p.AnyOf = []*property{
 			{Type: p.Type},
-			{Type: "null"},
+			{Type: []string{"null"}},
 		}
-		p.Type = ""
+		p.Type = []string{"null"}
 	}
 }
 
 func (p *property) readFromSlice(t reflect.Type) {
 	jsType, _, kind := getTypeFromMapping(t.Elem())
 	if kind == reflect.Uint8 {
-		p.Type = "string"
+		p.Type = []string{"string"}
 	} else if jsType != "" || kind == reflect.Ptr {
 		p.Items = &property{}
 		p.Items.read(t.Elem())
@@ -126,14 +127,14 @@ func (p *property) readFromMap(t reflect.Type) {
 
 	if jsType != "" {
 		p.Properties = make(map[string]*property, 0)
-		p.Properties[".*"] = &property{Type: jsType, Format: format}
+		p.Properties[".*"] = &property{Type: []string{jsType}, Format: format}
 	} else {
 		p.AdditionalProperties = true
 	}
 }
 
 func (p *property) readFromStruct(t reflect.Type) {
-	p.Type = "object"
+	p.Type = []string{"object"}
 	p.Properties = make(map[string]*property, 0)
 	p.AdditionalProperties = false
 
@@ -164,11 +165,13 @@ func (p *property) readFromStruct(t reflect.Type) {
 }
 
 func (p *property) addValidatorsFromTags(tag *reflect.StructTag) {
-	switch p.Type {
-	case "string":
-		p.addStringValidators(tag)
-	case "number", "integer":
-		p.addNumberValidators(tag)
+	for _, item := range p.Type {
+		switch item {
+		case "string":
+			p.addStringValidators(tag)
+		case "number", "integer":
+			p.addNumberValidators(tag)
+		}
 	}
 }
 
@@ -242,10 +245,13 @@ func (p *property) addNumberValidators(tag *reflect.StructTag) {
 	if err == nil {
 		p.ExclusiveMaximum = float64ptr(m)
 	}
-	c, err := parseType(tag.Get("const"), p.Type)
-	if err == nil {
-		p.Const = c
+	for _, item := range p.Type {
+		c, err := parseType(tag.Get("const"), item)
+		if err == nil {
+			p.Const = c
+		}
 	}
+
 }
 
 func parseType(str, ty string) (interface{}, error) {
